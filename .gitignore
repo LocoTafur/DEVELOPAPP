@@ -1,20 +1,11 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-venv/
-.env
+# Python - Ignora en cualquier nivel de profundidad
+**/__pycache__/
+**/*.py[cod]
+**/*.venv/
+**/.env
 
-# Docker & DB
-.db
-test.db
-test_local.db
-
-# IDEs
-.vscode/
-.idea/
-
-# Node (Frontend)
-node_modules/
-dist/
-build/
+# Frontend (Dentro de /frontend)
+**/node_modules/
+**/dist/
+**/build/
+.DS_Store
