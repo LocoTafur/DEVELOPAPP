@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Docker & DB
+.db
+test.db
+test_local.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Node (Frontend)
+node_modules/
+dist/
+build/
