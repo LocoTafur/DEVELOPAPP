@@ -1,0 +1,101 @@
+version: "3.8"
+
+x-common-env: &common-env
+  SECRET_KEY: ${SECRET_KEY}
+  ALGORITHM: ${ALGORITHM}
+  AUTH_SERVICE_URL: ${AUTH_URL}
+  ROLES_SERVICE_URL: ${ROLES_URL}
+  CANCHAS_SERVICE_URL: ${CANCHAS_URL}
+  BOOKINGS_SERVICE_URL: ${BOOKINGS_URL}
+  DASHBOARD_SERVICE_URL: ${DASHBOARD_URL}
+
+services:
+  # --- BASE DE DATOS ---
+  db:
+    image: postgres:15-alpine
+    container_name: canchas_db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: postgres
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+  # --- MICROSERVICIOS ---
+  auth_service:
+    build: ./Backend/auth_service
+    container_name: auth_service
+    environment:
+      <<: *common-env
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/canchas_auth_db"
+    depends_on:
+      - db
+
+  roles_service:
+    build: ./Backend/roles_service
+    container_name: roles_service
+    environment:
+      <<: *common-env
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/canchas_roles_db"
+    depends_on:
+      - db
+
+  canchas_service:
+    build: ./Backend/canchas_service
+    container_name: canchas_service
+    environment:
+      <<: *common-env
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/canchas_inventory_db"
+    depends_on:
+      - db
+
+  bookings_service:
+    build: ./Backend/bookings_service
+    container_name: bookings_service
+    environment:
+      <<: *common-env
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASS}@db:5432/bookings_db"
+    depends_on:
+      - db
+
+  dashboard_service:
+    build: ./Backend/dashboard_service
+    container_name: dashboard_service
+    environment:
+      <<: *common-env
+
+    depends_on:
+      - auth_service
+      - canchas_service
+      - bookings_service
+
+  # --- API GATEWAY ---
+  gateway:
+    build: ./Backend/apigateway
+    container_name: api_gateway
+    ports:
+      - "8080:8000"
+    environment:
+      <<: *common-env
+    depends_on:
+      - auth_service
+      - roles_service
+      - canchas_service
+      - bookings_service
+      - dashboard_service
+
+  # --- FRONTEND ---
+  frontend:
+    build: ./frontend
+    container_name: frontend_app
+    ports:
+      - "3000:80"
+    depends_on:
+      - gateway
+
+volumes:
+  postgres_data:
