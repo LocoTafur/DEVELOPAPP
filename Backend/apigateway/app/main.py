@@ -31,20 +31,15 @@ async def gateway(service: str, path: str, request: Request):
             status_code=404, detail="Servicio no encontrado en el Gateway"
         )
 
-    # Construir la URL de destino
     url = f"{SERVICES[service]}/{path}"
-
-    # Capturar cuerpo, headers y parámetros de la petición original
     body = await request.body()
     headers = dict(request.headers)
     params = dict(request.query_params)
-
-    # El Host header debe eliminarse para que el microservicio destino no se confunda
     headers.pop("host", None)
 
     async with httpx.AsyncClient() as client:
         try:
-            # Reenviar la petición al microservicio correspondiente
+
             response = await client.request(
                 method=request.method,
                 url=url,
@@ -54,7 +49,6 @@ async def gateway(service: str, path: str, request: Request):
                 timeout=10.0,
             )
 
-            # Devolver la respuesta del microservicio al cliente original
             return Response(
                 content=response.content,
                 status_code=response.status_code,

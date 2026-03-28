@@ -23,8 +23,11 @@ import {
   Save,
   X,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState("stats");
   const [stats, setStats] = useState(null);
   const [canchas, setCanchas] = useState([]);
@@ -51,8 +54,22 @@ const AdminDashboard = () => {
   const [newRole, setNewRole] = useState({ name: "", permissions: "" });
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      if (String(decoded.role) !== "1") {
+        navigate("/home");
+        return;
+      }
+    } catch (error) {}
     fetchData();
-  }, []);
+  }, [navigate]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -77,13 +94,18 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   // --- ESTADÍSTICAS
   const handleUpdateUser = async (e) => {
     e.preventDefault();
     if (!editingUser.full_name.trim()) return alert("Nombre obligatorio");
 
     try {
-      await api.put(`/auth/users/${editingUser.id}`, {
+      await api.patch(`/auth/users/${editingUser.id}`, {
         full_name: editingUser.full_name,
         is_active: editingUser.is_active,
         role_id: editingUser.role_id,
@@ -187,7 +209,6 @@ const AdminDashboard = () => {
 
   const startEditingRole = (role) => {
     setEditingRole(role);
-    // Al editar, convertimos el array del backend [a, b] de vuelta a string "a, b" para el input
     setNewRole({
       name: role.name,
       permissions: role.permissions ? role.permissions.join(", ") : "",
@@ -247,6 +268,12 @@ const AdminDashboard = () => {
             className={`w-full flex items-center p-3 rounded-xl ${activeTab === "roles" ? "bg-green-600" : "hover:bg-zinc-800"}`}
           >
             <ShieldCheck className="mr-3" size={20} /> Roles y Permisos
+          </button>
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center p-3 rounded-xl hover:bg-zinc-800`}
+          >
+            <ShieldCheck className="mr-3" size={20} /> Cerrar Sesión
           </button>
         </nav>
       </div>
@@ -726,7 +753,7 @@ const AdminDashboard = () => {
 
                 <div className="md:col-span-1 space-y-1">
                   <label className="text-xs font-bold text-zinc-400 uppercase ml-1">
-                    Permisos (separados por coma)
+                    Permisos
                   </label>
                   <input
                     type="text"
@@ -781,7 +808,6 @@ const AdminDashboard = () => {
                       </span>
                     </div>
 
-                    {/* Visualización de permisos como chips */}
                     <div className="flex flex-wrap gap-1">
                       {r.permissions && r.permissions.length > 0 ? (
                         r.permissions.map((p, idx) => (

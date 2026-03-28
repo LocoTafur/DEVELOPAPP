@@ -1,5 +1,5 @@
 
--- 1. CREACIÓN DE LAS BASES DE DATOS
+-- BASES DE DATOS
 CREATE DATABASE canchas_auth_db;
 CREATE DATABASE bookings_db;
 CREATE DATABASE canchas_roles_db;
@@ -29,7 +29,7 @@ CREATE TABLE roles (
     permissions JSONB NOT NULL
 );
 
--- Insertar roles  usuario y  admin obligatorio
+-- Insertar roles usuario y admin obligatorio
 INSERT INTO roles (name, permissions) 
 VALUES ('admin', '["canchas:all", "users:all", "roles:all"]'),
        ('usuario', '["canchas:view", "reservas:create", "reservas:view_own", "perfil:edit"]');

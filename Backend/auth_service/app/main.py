@@ -129,7 +129,7 @@ def update_own_profile(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user_id),
 ):
-    user = db.query(User).filter(User.id == current_user["id"]).first()
+    user = db.query(User).filter(User.id == current_user["sub_id"]).first()
 
     if obj_in.full_name:
         user.full_name = obj_in.full_name

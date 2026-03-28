@@ -6,7 +6,7 @@ CANCHAS_SERVICE_URL = os.getenv("CANCHAS_SERVICE_URL", "http://localhost:8002/ca
 
 def get_cancha_info(cancha_id: int):
     try:
-        response = requests.get(f"{CANCHAS_SERVICE_URL}/{cancha_id}")
+        response = requests.get(f"{CANCHAS_SERVICE_URL}/canchas/{cancha_id}")
         if response.status_code == 200:
             return response.json()
         return None

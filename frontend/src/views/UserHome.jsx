@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import api from "../api/client";
+import { useNavigate } from "react-router-dom";
 import {
+  LogOut,
   MapPin,
   Users,
   Clock,
@@ -17,13 +19,14 @@ import {
 } from "lucide-react";
 
 const UserHome = () => {
+  const navigate = useNavigate();
+
   const [activeTab, setActiveTab] = useState("canchas");
   const [canchas, setCanchas] = useState([]);
   const [misReservas, setMisReservas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  // Estados para Modal de Reserva/Edición
   const [bookingModal, setBookingModal] = useState({
     open: false,
     data: null,
@@ -35,7 +38,6 @@ const UserHome = () => {
     hora_fin: "",
   });
 
-  // Estado Perfil
   const [perfil, setPerfil] = useState({
     full_name: "",
     password: "",
@@ -43,8 +45,14 @@ const UserHome = () => {
   });
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
     fetchInitialData();
-  }, []);
+  }, [navigate]);
 
   const fetchInitialData = async () => {
     setLoading(true);
@@ -106,6 +114,12 @@ const UserHome = () => {
   };
 
   // --- PERFIL
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     if (perfil.password && perfil.password !== perfil.confirmPassword) {
@@ -148,10 +162,17 @@ const UserHome = () => {
               { id: "canchas", icon: LayoutGrid, label: "Explorar" },
               { id: "reservas", icon: ClipboardList, label: "Mis Reservas" },
               { id: "perfil", icon: Settings, label: "Mi Perfil" },
+              { id: "logout", icon: LogOut, label: "Cerrar Sesión" },
             ].map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  if (tab.id === "logout") {
+                    handleLogout();
+                  } else {
+                    setActiveTab(tab.id);
+                  }
+                }}
                 className={`flex items-center px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
                   activeTab === tab.id
                     ? "bg-white shadow-md text-zinc-900"
